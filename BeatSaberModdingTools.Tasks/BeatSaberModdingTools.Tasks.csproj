@@ -129,7 +129,8 @@
         <WriteLinesToFile File="$(GITHUB_OUTPUT)" Lines="@(GithubOutputs)" Encoding="Unicode" />
     </Target>
     <Target Name="CopyToLocalNuget" AfterTargets="Pack" Condition="'$(ContinuousIntegrationBuild)' != 'True'">
-        <Message Text="Output: '$(OutDir)..\$(AssemblyName).$(PackageVersion).nupkg' -&gt; '$(HOMEDRIVE)$(HOMEPATH)\Nuget\$(AssemblyName)-$(PackageVersion).nupkg'" Importance="high" />
-        <Copy SourceFiles="$(OutDir)..\$(AssemblyName).$(PackageVersion).nupkg" DestinationFiles="$(HOMEDRIVE)$(HOMEPATH)\Nuget\$(AssemblyName).$(PackageVersion).nupkg" />
+        <Exec Command="$(USERPROFILE)\.nuget\nuget.exe delete $(PackageId) $(PackageVersion) -Source &quot;$(USERPROFILE)\.nuget\packages&quot; -NonInteractive" IgnoreExitCode="true" />
+        <Exec Command="$(USERPROFILE)\.nuget\nuget.exe delete $(PackageId) $(PackageVersion) -Source &quot;$(USERPROFILE)\.nuget\local&quot; -NonInteractive" IgnoreExitCode="true" />
+        <Exec Command="$(USERPROFILE)\.nuget\nuget.exe add &quot;$(ProjectDir)$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg&quot; -Source &quot;$(USERPROFILE)\.nuget\local&quot;" />
     </Target>
 </Project>
