@@ -77,31 +77,15 @@
         </None>
     </ItemGroup>
 
-    <ItemGroup>
-        <!-- NuGetizer makes controlling NuGet pack *much* nicer -->
-        <!-- Breaks GitHub Actions build
-        <PackageReference Include="NuGetizer" Version="0.7.5">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-        </PackageReference>
-        -->
-    </ItemGroup>
-
     <ItemGroup Condition="'$(ContinuousIntegrationBuild)' == 'True'">
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     </ItemGroup>
 
-    <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-        <PackageReference Include="Microsoft.Build.Framework" Version="16.5.0" />
-        <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.5.0" />
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build.Framework" Version="17.11.31" />
+        <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.11.31" />
         <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     </ItemGroup>
-
-    <!--<ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.9.20" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.9.20" />
-    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
-  </ItemGroup>-->
 
     <Target Name="GithubActionsInfo" AfterTargets="Pack">
         <PropertyGroup Condition="'$(GITHUB_OUTPUT)' == ''">
