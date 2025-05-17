@@ -56,31 +56,17 @@
 
     <ItemGroup>
         <None Include="package_readme.md" Pack="true" PackagePath="\" />
-        <Content Include="BeatSaberModdingTools.Tasks.TargetFramework.props" Pack="true" PackagePath="build\BeatSaberModdingTools.Tasks.props" />
-        <Content Include="BeatSaberModdingTools.Tasks.targets" Pack="true" PackagePath="build\BeatSaberModdingTools.Tasks.targets" />
-        <Content Include="BSMT.RequiredTargets.targets">
-            <PackagePath>build\BSMT.RequiredTargets.targets</PackagePath>
-            <Pack>true</Pack>
-        </Content>
-        <Content Include="BSMT.DefaultProps.props" Pack="true" PackagePath="build\BSMT.DefaultProps.props" />
-        <Content Include="BuildTypes\BSMT.Test.targets">
-            <PackagePath>build\BuildTypes\BSMT.Test.targets</PackagePath>
-            <Pack>true</Pack>
-        </Content>
-        <Content Include="BuildTypes\BSMT.BSIPA.targets">
-            <PackagePath>build\BuildTypes\BSMT.BSIPA.targets</PackagePath>
-            <Pack>true</Pack>
-        </Content>
-        <!--<Content Include="BeatSaberModdingTools.Tasks.TargetFrameworks.props" Pack="true" PackagePath="buildMultiTargeting\BeatSaberModdingTools.Tasks.props" />-->
+        <Content Include="BeatSaberModdingTools.Tasks.props" Pack="true" PackagePath="build\$(PackageId).props" />
+        <Content Include="BeatSaberModdingTools.Tasks.targets" Pack="true" PackagePath="build\$(PackageId).targets" />
+        <Content Include="BuildTypes\BSMT.BSIPA.props" Pack="true" PackagePath="build\BuildTypes\BSMT.BSIPA.props" />
+        <Content Include="BuildTypes\BSMT.BSIPA.targets" Pack="true" PackagePath="build\BuildTypes\BSMT.BSIPA.targets" />
     </ItemGroup>
 
     <ItemGroup>
         <Compile Remove="nupkgs\**" />
         <EmbeddedResource Remove="nupkgs\**" />
         <None Remove="nupkgs\**" />
-        <None Remove="BSMT.RequiredTargets.targets" />
         <None Remove="BuildTypes\BSMT.BSIPA.targets" />
-        <None Remove="BuildTypes\BSMT.Test.targets" />
         <None Include="..\LICENSE">
             <Pack>True</Pack>
             <PackagePath></PackagePath>

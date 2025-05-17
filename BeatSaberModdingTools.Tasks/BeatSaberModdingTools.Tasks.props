@@ -5,18 +5,14 @@
 <!--<Project TreatAsLocalProperty="BSMTTaskFolder;BSMTTaskAssembly" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">-->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
+        <BSMTProjectType Condition="'$(BSMTProjectType)' == ''">BSIPA</BSMTProjectType>
+    </PropertyGroup>
 
+    <PropertyGroup>
         <BSMTTaskFolder>netstandard2.0</BSMTTaskFolder>
         <IsNetCoreApp Condition="$(MSBuildRuntimeType) == 'Core'">true</IsNetCoreApp>
         <IsNetCoreApp Condition="$(MSBuildRuntimeType) != 'Core'">false</IsNetCoreApp>
-        <!--
-        <BSMTTaskFolder Condition="$(IsNetCoreApp)">netstandard2.0</BSMTTaskFolder>
-        <BSMTTaskFolder Condition="!$(IsNetCoreApp)">net46</BSMTTaskFolder>
-        <BSMTTaskFolder>netstandard2.0</BSMTTaskFolder>
-        -->
         <BSMTTaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(BSMTTaskFolder)\BeatSaberModdingTools.Tasks.dll</BSMTTaskAssembly>
-        <BSMT_ImportOverridden Condition="'$(BuildTargetsVersion)' != '' AND '$(ImportBSMTTargets)' != 'False'">True</BSMT_ImportOverridden>
-        <ImportBSMTTargets Condition="'$(BSMT_ImportOverridden)' != 'True' AND '$(ImportBSMTTargets)' == ''">true</ImportBSMTTargets>
     </PropertyGroup>
 
     <UsingTask TaskName="BeatSaberModdingTools.Tasks.CompareVersions" AssemblyFile="$(BSMTTaskAssembly)" />
@@ -29,6 +25,5 @@
     <UsingTask TaskName="BeatSaberModdingTools.Tasks.GenerateManifest" AssemblyFile="$(BSMTTaskAssembly)" />
     <UsingTask TaskName="BeatSaberModdingTools.Tasks.SetActionOutput" AssemblyFile="$(BSMTTaskAssembly)" />
 
-    <Import Project="$(MSBuildThisFileDirectory)BSMT.DefaultProps.props"/>
-    <Import Project="$(MSBuildThisFileDirectory)BSMT.RequiredTargets.targets"/>
+    <Import Project="$(MSBuildThisFileDirectory)BuildTypes\BSMT.BSIPA.props" Condition="'$(BSMTProjectType)' == 'BSIPA'"/>
 </Project>

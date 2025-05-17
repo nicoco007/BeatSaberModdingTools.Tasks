@@ -1,190 +1,95 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project>
-    <!--Build Targets-->
-    <!--
-    <Target Name="LegacyWarnings" BeforeTargets="BSMT_GetProjectInfo" DependsOnTargets="BSMT_BeforeBuild">
-        <Warning Text="'BeatSaberDir' property has been deprecated, please switch to 'GameDirectory' to set the Beat Saber path for your project."
-                 Condition="'$(BeatSaberDir)' != ''" />
-    </Target>
-    -->
-    <Target Name="BSMT_StartBSIPA" BeforeTargets="BeforeBuild" DependsOnTargets="BSMT_BeforeBuild">
-        <Message Text="Target: BSMT_StartBSIPA" Importance="high" />
-        
-        <Message Text="   No 'GameExe' was specified, defaulting to 'Beat Saber.exe'" Importance="high" />
-        <PropertyGroup>
-            <ManifestPath Condition="'$(ManifestPath)' == ''">manifest.json</ManifestPath>
-            <GameExe Condition="'$(GameExe)' == ''">Beat Saber</GameExe>
-        </PropertyGroup>
-        <Message Text="   ManifestPath= '$(ManifestPath)' (Manifest path relative to project)" Importance="high" />
-        <Message Text="   GenerateManifest= '$(GenerateManifest)' (Generate manifest if true)" Importance="high" />
-        <Message Text="   GameExe= '$(GameExe)' (Filename to check if game is running)" Importance="high" />
+﻿<Project>
+    <PropertyGroup>
+        <!-- Normalize BeatSaberDir -->
+        <BeatSaberDir Condition="'$(BeatSaberDir)' != '' AND !($(BeatSaberDir.EndsWith('/')) OR $(BeatSaberDir.EndsWith('\')))">$(BeatSaberDir)\</BeatSaberDir>
 
-        <Message Text="   Reading AssemblyInfo from 'Properties\AssemblyInfo.cs'" Importance="high" Condition="Exists('Properties\AssemblyInfo.cs')" />
-        <GetAssemblyInfo FailOnError="$(ErrorOnMismatchedVersions)" Condition="Exists('Properties/AssemblyInfo.cs')">
-            <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
-        </GetAssemblyInfo>
-        <PropertyGroup>
-            <Version Condition="Exists('Properties/AssemblyInfo.cs')">$(AssemblyVersion)</Version>
-        </PropertyGroup>
-        <Message Text="   Version= '$(Version)' (Filename to check if game is running)" Importance="high" Condition="Exists('Properties\AssemblyInfo.cs')"  />
+        <ManifestPath Condition="'$(BeatSaberOutputType)' == 'Plugin'">$(IntermediateOutputPath)manifest.json</ManifestPath>
+        <ManifestPath Condition="'$(BeatSaberOutputType)' == 'Library'">$(TargetDir)$(TargetName).manifest</ManifestPath>
+
+        <!-- Set version to compare against tag (if applicable) -->
+        <GitTagVersion>$([System.String]::Format('$(GitTagFormat)', '$(Version)'))</GitTagVersion>
+
+        <!-- Keep the version without metadata around -->
+        <BaseVersion>$(Version)</BaseVersion>
+        
+        <!-- Set SemVer build metadata -->
+        <BuildMetadata Condition="'$(GITHUB_SHA)' == ''">dev</BuildMetadata>
+        <BuildMetadata Condition="'$(GITHUB_SHA)' != ''">bs.$(GameVersion)</BuildMetadata>
+        <BuildMetadata Condition="'$(GITHUB_SHA)' != '' AND '$(GITHUB_REF_TYPE)' != 'tag'">$(BuildMetadata).git.sha.$(GITHUB_SHA)</BuildMetadata>
+        <Version Condition="$(BuildMetadata) != ''">$(Version)+$(BuildMetadata)</Version>
+
+        <ArtifactName Condition="'$(ArtifactName)' == ''">$(ProjectName)-v$(Version)</ArtifactName>
+        <ArtifactDir Condition="'$(ArtifactDir)' == ''">$(TargetDir)Artifact\</ArtifactDir>
+    </PropertyGroup>
+
+    <!-- If we're building for a tag in CI, make sure it matches the version defined here -->
+    <Target Name="ValidateTag" BeforeTargets="BeforeBuild">
+        <Error Condition="'$(GITHUB_REF_TYPE)' == 'tag' AND '$(GITHUB_REF_NAME)' != '$(GitTagVersion)'" Text="Tag '$(GITHUB_REF_NAME)' does not match version '$(GitTagVersion)'" />
     </Target>
-    <Target Name="BSMT_GenerateManifest" BeforeTargets="BeforeBuild" DependsOnTargets="BSMT_StartBSIPA" Condition="'$(GenerateManifest)' == 'true'">
-        <Message Text="Target: BSMT_GenerateManifest" Importance="high" />
+
+    <!-- Default targets set TargetFrameworkDirectory to .NET Framework reference assemblies no matter what so we have to manually force it -->
+    <Target Name="OverrideTargetFrameworkDirectory" AfterTargets="GetReferenceAssemblyPaths">
         <PropertyGroup>
-            <ManifestPath Condition="!Exists('$(ManifestPath)')"></ManifestPath>
-            <RequiresBsipa Condition="'$(RequiresBsipa)' == ''">True</RequiresBsipa>
-            <PluginVersion Condition="'$(PluginVersion)' == ''">$(Version)</PluginVersion>
+            <TargetFrameworkDirectory>$(BeatSaberDir)Beat Saber_Data\Managed\;$(BeatSaberDir)Plugins\;$(BeatSaberDir)Libs\</TargetFrameworkDirectory>
         </PropertyGroup>
-        <Message Text="   PluginId= '$(PluginId)' (ID string used for generated manifest.)" Importance="high" />
-        <Message Text="   PluginName= '$(PluginName)' (Name string used for generated manifest.)" Importance="high" />
-        <Message Text="   Version= '$(Version)' (Version string used for generated manifest.)" Importance="high" />
-        <Message Text="   RequiresBsipa= '$(RequiresBsipa)' (Set to 'false' if your mod does not require BSIPA to function.)" Importance="high" />
-        <GenerateManifest ID="$(PluginId)" Name="$(PluginName)" Author="$(Authors)" Version="$(Version)" GameVersion="$(GameVersion)"
+    </Target>
+
+    <Target Name="GenerateManifest" BeforeTargets="BeforeBuild" Condition="'$(BeatSaberOutputType)' != 'None'">
+        <GenerateManifest ID="$(PackageId)" Name="$(Title)" Author="$(Authors)" Version="$(Version)" GameVersion="$(GameVersion)"
                           Description="$(Description)" Icon="$(PluginIcon)" DependsOn="@(DependsOn)" ConflictsWith="@(ConflictsWith)"
                           Files="@(RequiredFile)" LoadBefore="@(LoadBefore)" LoadAfter="@(LoadAfter)"
-                          ProjectSource="$(ProjectSource)" ProjectHome="$(ProjectHome)" Donate="$(Donate)"
+                          ProjectSource="$(RepositoryUrl)" ProjectHome="$(ProjectHome)" Donate="$(DonateUrl)"
                           Features="$(PluginFeatures)" Misc="$(PluginMisc)" PluginHint="$(PluginHint)"
-                          BaseManifestPath="$(ManifestPath)" TargetPath="$(IntermediateOutputPath)manifest.json"
-                          RequiresBsipa="$(RequiresBsipa)">
-            <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />   
-            <Output TaskParameter="BasePluginVersion" PropertyName="BasePluginVersion" />
-            <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
-        </GenerateManifest>
-        <Message Text="   Output Properties:" Importance="high" />
-        <Message Text="      PluginVersion= '$(PluginVersion)'" Importance="high" />
-        <Message Text="      BasePluginVersion= '$(BasePluginVersion)'" Importance="high" />
-        <Message Text="      GameVersion= '$(GameVersion)'" Importance="high" />
-        <ItemGroup Condition="'$(DisableManifestEmbed)' != 'True'">
+                          TargetPath="$(ManifestPath)" />
+
+        <ItemGroup Condition="'$(BeatSaberOutputType)' == 'Plugin'">
             <EmbeddedResource Include="$(IntermediateOutputPath)manifest.json" LogicalName="$(AssemblyName).manifest.json" />
         </ItemGroup>
-        <PropertyGroup>
-            <ManifestPath>$(ProjectDir)$(IntermediateOutputPath)manifest.json"</ManifestPath>
-        </PropertyGroup>
-        <Copy SourceFiles="$(IntermediateOutputPath)manifest.json" DestinationFiles="$(OutputAssemblyName).manifest" />
-        <Message Text="   Generated manifest copied to '$(OutputAssemblyName).manifest'" Importance="high" />
-    </Target>
-    <!--Runs a build task to get info about the project used by later targets.-->
-    <Target Name="BSMT_GetProjectInfo" BeforeTargets="BeforeBuild" DependsOnTargets="BSMT_StartBSIPA;BSMT_GenerateManifest">
-        <Message Text="Target: BSMT_GetProjectInfo" Importance="high" />
-        <GetManifestInfo ManifestPath="$(ManifestPath)" FailOnError="$(ErrorOnMismatchedVersions)" Condition="'$(GenerateManifest)' != 'True'">
-            <Output TaskParameter="PluginVersion" PropertyName="PluginVersion" />
-            <Output TaskParameter="BasePluginVersion" PropertyName="BasePluginVersion" />
-            <Output TaskParameter="GameVersion" PropertyName="GameVersion" />
-        </GetManifestInfo>
-        <GetCommitInfo ProjectDir="$(ProjectDir)">
-            <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
-            <Output TaskParameter="Branch" PropertyName="Branch" />
-            <Output TaskParameter="Modified" PropertyName="GitModified" />
-        </GetCommitInfo>
-        <Message Text="Reading AssemblyInfo from 'Properties\AssemblyInfo.cs'" Importance="high" Condition="Exists('Properties\AssemblyInfo.cs')" />
-        <GetAssemblyInfo FailOnError="$(ErrorOnMismatchedVersions)" Condition="Exists('Properties/AssemblyInfo.cs')">
-            <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
-        </GetAssemblyInfo>
-        <CompareVersions PluginVersion="$(BasePluginVersion)" AssemblyVersion="$(AssemblyVersion)" ErrorOnMismatch="$(ErrorOnMismatchedVersions)"
-							Condition="Exists('Properties\AssemblyInfo.cs')" />
-        <PropertyGroup>
-            <Version>$(BasePluginVersion)</Version>
-            <!--Build name for artifact/zip file-->
-            <ArtifactName>$(AssemblyName)</ArtifactName>
-            <ArtifactName Condition="'$(PluginVersion)' != ''">$(ArtifactName)-$(PluginVersion)</ArtifactName>
-            <ArtifactName Condition="'$(GameVersion)' != ''">$(ArtifactName)-bs$(GameVersion)</ArtifactName>
-            <ArtifactName Condition="'$(CommitHash)' != '' AND '$(CommitHash)' != 'local'">$(ArtifactName)-$(CommitHash)</ArtifactName>
-        </PropertyGroup>
-        
-        <Message Text="   Output Properties:" Importance="high" />
-        <Message Text="      AssemblyVersion= '$(AssemblyVersion)'" Importance="high"  Condition="Exists('Properties/AssemblyInfo.cs')" />
-        <Message Text="      Version= '$(Version)'" Importance="high" />
-        <Message Text="      PluginVersion= '$(PluginVersion)'" Importance="high" />
-        <Message Text="      BasePluginVersion= '$(BasePluginVersion)'" Importance="high" />
-        <Message Text="      GameVersion= '$(GameVersion)'" Importance="high" />
-        <Message Text="      CommitHash= '$(CommitHash)'" Importance="high" />
-        <Message Text="      Branch= '$(Branch)'" Importance="high" />
-        <Message Text="      GitModified= '$(GitModified)'" Importance="high" />
-        <Message Text="      ArtifactName= '$(ArtifactName)'" Importance="high" />
-        <CompareVersions PluginVersion="$(BasePluginVersion)" AssemblyVersion="$(Version)" ErrorOnMismatch="$(ErrorOnMismatchedVersions)" />
     </Target>
 
-    <Target Name="BSMT_SetOutputs" AfterTargets="Build" DependsOnTargets="BSMT_AfterBuild">
-        <Message Text="Target: BSMT_SetOutputs | Number of existing items in OutputCopy: @(OutputCopy->Count())" Importance="high" />
+    <!-- Copy the assembly and PDB to the Artifact folder -->
+    <Target Name="CopyToArtifact" AfterTargets="AfterBuild">
+        <Message Text="$(MSBuildProjectName) -&gt; $(ArtifactDir)" Importance="high" />
+
         <PropertyGroup>
-            <BSMT_SetOutputs_Default Condition="'@(OutputCopy->Count())' == 0">True</BSMT_SetOutputs_Default>
+            <ArtifactTargetDir Condition="'$(BeatSaberOutputType)' == 'Plugin'">Plugins\</ArtifactTargetDir>
+            <ArtifactTargetDir Condition="'$(BeatSaberOutputType)' == 'Library'">Libs\</ArtifactTargetDir>
         </PropertyGroup>
-        <ItemGroup Condition="'$(BSMT_SetOutputs_Default)' == 'True'">
-            <OutputCopy Include="$(OutputAssemblyName).dll" OutputPath="Plugins\$(AssemblyName).dll"/>
-            <OutputCopy Include="$(OutputAssemblyName).pdb" OutputPath="Plugins\$(AssemblyName).pdb" 
-                        Condition="Exists('$(OutputAssemblyName).pdb') AND '$(CopyPDB)' == 'True'" />
-        </ItemGroup>
-        <Message Text="   Using default output: '%(OutputCopy.Identity)' -> '%(OutputCopy.OutputPath)'" Importance="high" Condition="'$(BSMT_SetOutputs_Default)' == 'True'" />
-        <Message Text="   Using custom output: '%(OutputCopy.Identity)' -> '%(OutputCopy.OutputPath)'" Importance="high" Condition="'$(BSMT_SetOutputs_Default)' != 'True'" />
-        <Message Text="   PluginVersion: $(PluginVersion), AssemblyVersion: $(AssemblyVersion), GameVersion: $(GameVersion)" Importance="high" />
-    </Target>
-    <Target Name="CopyToArtifactDestination" AfterTargets="Build" DependsOnTargets="BSMT_AfterBuild;BSMT_SetOutputs">
-        <Message Text="Target: CopyToArtifactDestination | ArtifactDestination: '$(ArtifactDestination)'" Importance="high" />
-        <Message Text="   Copying '%(OutputCopy.Identity)' to '$(ArtifactDestination)\%(OutputCopy.OutputPath)'." Importance="high" />
-        <Copy SourceFiles="%(OutputCopy.Identity)" DestinationFiles="$(ArtifactDestination)\%(OutputCopy.OutputPath)" />
-    </Target>
-    <!--Build target for Continuous Integration builds. Set up for GitHub Actions.-->
-    <Target Name="BSMT_OutputForCI" AfterTargets="Build" DependsOnTargets="BSMT_GetProjectInfo;BSMT_AfterBuild;CopyToArtifactDestination" Condition="'$(ContinuousIntegrationBuild)' == 'True'">
-        <Message Text="Target: BSMT_OutputForCI" Importance="high" />
-        <PropertyGroup>
-            <!--Set 'ArtifactName' if it failed before.-->
-            <ArtifactName Condition="'$(ArtifactName)' == ''">$(AssemblyName)</ArtifactName>
-        </PropertyGroup>
-        <!--<Message Text="   ::set-output name=filename::$(ArtifactName)" Importance="high" />-->
-        <SetActionOutput OutputName="filename" OutputValue="$(ArtifactName)" OutputPath="$(GithubOutputPath)" />
-        <!--<Message Text="   ::set-output name=assemblyname::$(AssemblyName)" Importance="high" />-->
-        <SetActionOutput OutputName="assemblyname" OutputValue="$(AssemblyName)" OutputPath="$(GithubOutputPath)" />
-        <!--<Message Text="   ::set-output name=artifactpath::$(ProjectDir)$(ArtifactDestination)" Importance="high" />-->
-        <SetActionOutput OutputName="artifactpath" OutputValue="$(ProjectDir)$(ArtifactDestination)" OutputPath="$(GithubOutputPath)" />
-        <Message Text="   Output Properties:" Importance="high" />
-        <Message Text="      ArtifactName= '$(ArtifactName)'" Importance="high" />
-    </Target>
-    <!--Creates a BeatMods compliant zip file with the release.-->
-    <Target Name="BSMT_ZipRelease" AfterTargets="Build" DependsOnTargets="BSMT_AfterBuild;CopyToArtifactDestination" Condition="'$(DisableZipRelease)' != 'True' AND '$(Configuration)' == 'Release'">
-        <Message Text="Target: BSMT_ZipRelease" Importance="high" />
-        <PropertyGroup>
-            <!--Set 'ArtifactName' if it failed before.-->
-            <ArtifactName Condition="'$(ArtifactName)' == ''">$(AssemblyName)</ArtifactName>
-            <ZipDestinationDirectory>$(OutDir)zip\</ZipDestinationDirectory>
-            <ZipDestinationFile>$(ZipDestinationDirectory)$(ArtifactName).zip</ZipDestinationFile>
-        </PropertyGroup>
-        <Message Text="   Output Properties:" Importance="high" />
-        <Message Text="      ZipDestinationDirectory= '$(ZipDestinationDirectory)'" Importance="high" />
-        <Message Text="      ZipDestinationFile= '$(ZipDestinationFile)'" Importance="high" />
+
         <ItemGroup>
-            <OldZips Include="$(ZipDestinationDirectory)$(AssemblyName)*.zip"/>
+            <ArtifactFiles Include="$(TargetPath)" DestinationFolder="$(ArtifactTargetDir)" />
+            <ArtifactFiles Include="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ArtifactTargetDir)" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+            <ArtifactFiles Include="$(TargetDir)$(TargetName).xml" DestinationFolder="$(ArtifactTargetDir)" Condition="Exists('$(TargetDir)$(TargetName).xml')" />
+            <ArtifactFiles Include="$(TargetDir)$(TargetName).manifest" DestinationFolder="Plugins" Condition="Exists('$(TargetDir)$(TargetName).manifest')" />
         </ItemGroup>
-        <Delete Files="@(OldZips)" TreatErrorsAsWarnings="true" ContinueOnError="true" />
-        <ZipDir SourceDirectory="$(ArtifactDestination)" DestinationFile="$(ZipDestinationDirectory)$(ArtifactName).zip" MessagePrefix="   " />
+
+        <MakeDir Directories="$(ArtifactDir)$(ArtifactTargetDir)" />
+        <Copy SourceFiles="@(ArtifactFiles)" DestinationFolder="$(ArtifactDir)%(ArtifactFiles.DestinationFolder)\%(ArtifactFiles.RecursiveDir)" />
     </Target>
-    <!--Copies the assembly and pdb to the Beat Saber folder.-->
-    <Target Name="BSMT_CopyToPlugins" AfterTargets="Build" DependsOnTargets="BSMT_AfterBuild;CopyToArtifactDestination" Condition="'$(DisableCopyToGame)' != 'True' AND '$(ContinuousIntegrationBuild)' != 'True'">
-        <Message Text="Target: BSMT_CopyToPlugins" Importance="high" />
-        <PropertyGroup>
-            <CanCopyToPlugins>True</CanCopyToPlugins>
-            <CopyToPluginsError Condition="!Exists('$(GameDirectory)')">Unable to copy assembly to game folder, did you set 'GameDirectory' correctly in your 'csproj.user' file? Directory doesn't exist: '$(GameDirectory)'.</CopyToPluginsError>
-            <!--Error if 'BeatSaberDir' does not have 'Beat Saber.exe'-->
-            <CopyToPluginsError 
-                Condition="!Exists('$(GameDirectory)\$(GameExe)') 
-                           AND !Exists('$(GameDirectory)\$(GameExe).exe')"
-                >Unable to copy to GameDirectory folder, '$(GameDirectory)' does not appear to be a game install ('$(GameExe)' not found).</CopyToPluginsError>
-            <!--Error if 'GameDirectory' is the same as 'LocalRefsDir'-->
-            <CopyToPluginsError Condition="'$(GameDirectory)' == '$(LocalRefsDir)' OR '$(GameDirectory)' == ''">Unable to copy to Plugins folder, 'GameDirectory' has not been set in your 'csproj.user' file.</CopyToPluginsError>
-            <CanCopyToPlugins Condition="'$(CopyToPluginsError)' != ''">False</CanCopyToPlugins>
-        </PropertyGroup>
-        <!--Check if Beat Saber is running-->
-        <IsProcessRunning ProcessName="$(GameExe)" Fallback="True" Condition="'$(BSMTTaskAssembly)' != '' AND '$(GameExe)' != ''">
-            <Output TaskParameter="IsRunning" PropertyName="IsRunning" />
-        </IsProcessRunning>
-        <PropertyGroup>
-            <!--If Beat Saber is running, output to the Pending folder-->
-            <IsRunning Condition="'$(GameExe)' == ''">True</IsRunning>
-            <GameDirectory Condition="'$(IsRunning)' == 'True'">$(GameDirectory)\IPA\Pending</GameDirectory>
-        </PropertyGroup>
-        <Warning Text="   $(CopyToPluginsError)" Condition="'$(CopyToPluginsError)' != ''" />
-        <Message Text="   Copying '%(OutputCopy.Identity)' to '$(GameDirectory)\%(OutputCopy.OutputPath)'." Importance="high" Condition="$(CanCopyToPlugins)" />
-        <Copy SourceFiles="%(OutputCopy.Identity)" DestinationFiles="$(GameDirectory)\%(OutputCopy.OutputPath)" Condition="$(CanCopyToPlugins)"  />
-        <Warning Text="   Game is running, restart the game to use the latest build." Condition="'$(IsRunning)' == 'True' AND '$(GameExe)' != ''" />
-        <Warning Text="   No 'GameExe' specified, using Pending directory for output." Condition="'$(GameExe)' == ''" />
+
+    <!-- Copy the assembly and PDB to the Beat Saber folder -->
+    <Target Name="CopyToPlugins" AfterTargets="CopyToArtifact" Condition="'$(BeatSaberDir)' != '' AND '$(BeatSaberOutputType)' != 'None' AND '$(CI)' == '' AND '$(NCrunch)' != '1'">
+        <Message Text="$(MSBuildProjectName) -&gt; $(BeatSaberDir)" Importance="high" />
+
+        <ItemGroup>
+            <FilesToCopy Include="$(ArtifactDir)\**\*" />
+        </ItemGroup>
+
+        <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(BeatSaberDir)%(RecursiveDir)" />
+    </Target>
+
+    <!-- Set GitHub Actions output variables -->
+    <Target Name="SetGitHubActionsOutput" AfterTargets="CopyToArtifact" Condition="'$(GITHUB_ACTIONS)' == 'true'">
+        <ItemGroup>
+            <GitHubActionsOutput Include="artifact-name" Value="$(ArtifactName)" />
+            <GitHubActionsOutput Include="artifact-path" Value="$(ArtifactDir)" />
+        </ItemGroup>
+
+        <WriteLinesToFile File="$(GITHUB_OUTPUT)" Lines="@(GitHubActionsOutput->'%(Identity)=%(Value)')" />
+    </Target>
+
+    <!-- Clean up artifact files -->
+    <Target Name="CleanArtifact" AfterTargets="Clean">
+        <RemoveDir Directories="$(ArtifactDir)" />
     </Target>
 </Project>
