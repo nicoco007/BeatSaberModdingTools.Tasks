@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <id>BeatSaberModdingTools.Tasks</id>
+        <PackageId>nicoco007.BeatSaberModdingTools.Tasks</PackageId>
         <Title>BeatSaberModdingTools.Tasks</Title>
-        <Version>2.0.0-beta7</Version>
+        <Version>0.1.0</Version>
         <Authors>Zingabopp</Authors>
         <Company>Zingabopp</Company>
         <Description>A set of MSBuild Tasks created for Beat Saber Modding Tools.</Description>
         <Copyright>Copyright © Zingabopp 2020</Copyright>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <RepositoryType>git</RepositoryType>
-        <PackageProjectUrl>https://github.com/Zingabopp/BeatSaberModdingTools.Tasks</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/Zingabopp/BeatSaberModdingTools.Tasks.git</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/nicoco007/BeatSaberModdingTools.Tasks</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/nicoco007/BeatSaberModdingTools.Tasks.git</RepositoryUrl>
         <LangVersion>8</LangVersion>
     </PropertyGroup>
 
