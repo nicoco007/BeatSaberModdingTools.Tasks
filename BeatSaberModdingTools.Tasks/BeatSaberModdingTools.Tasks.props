@@ -15,15 +15,15 @@
         <BSMTTaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(BSMTTaskFolder)\BeatSaberModdingTools.Tasks.dll</BSMTTaskAssembly>
     </PropertyGroup>
 
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.CompareVersions" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GetAssemblyInfo" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GetCommitInfo" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GetManifestInfo" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.IsProcessRunning" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.ReplaceInFile" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.ZipDir" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GenerateManifest" AssemblyFile="$(BSMTTaskAssembly)" />
-    <UsingTask TaskName="BeatSaberModdingTools.Tasks.SetActionOutput" AssemblyFile="$(BSMTTaskAssembly)" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.CompareVersions" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GetAssemblyInfo" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GetCommitInfo" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GetManifestInfo" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.IsProcessRunning" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.ReplaceInFile" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.ZipDir" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.GenerateManifest" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
+    <UsingTask TaskName="BeatSaberModdingTools.Tasks.SetActionOutput" AssemblyFile="$(BSMTTaskAssembly)" TaskFactory="TaskHostFactory" />
 
     <Import Project="$(MSBuildThisFileDirectory)BuildTypes\BSMT.BSIPA.props" Condition="'$(BSMTProjectType)' == 'BSIPA'"/>
 </Project>
