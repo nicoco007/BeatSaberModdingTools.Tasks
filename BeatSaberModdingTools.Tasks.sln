@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30002.166
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.36105.23 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BeatSaberModdingTools.Tasks", "BeatSaberModdingTools.Tasks\BeatSaberModdingTools.Tasks.csproj", "{69AE3C08-79E4-4AE8-A9BA-B580AA45F50C}"
 EndProject
@@ -13,13 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		README.md = README.md
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProject", "TestProject\TestProject.csproj", "{FF151AEE-8390-4DE3-BCFA-47F6F0842E3E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{69AE3C08-79E4-4AE8-A9BA-B580AA45F50C} = {69AE3C08-79E4-4AE8-A9BA-B580AA45F50C}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProjectRunner", "TestProjectRunner\TestProjectRunner.csproj", "{A7D53671-3028-4693-9B60-744249B4A0DF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestSetup", "TestSetup", "{EDE492B1-777F-4ECC-98E5-9618942F3B91}"
 	ProjectSection(SolutionItems) = preProject
@@ -41,10 +34,6 @@ Global
 		{B571D342-4BCA-4DEB-9223-27110B27FCF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B571D342-4BCA-4DEB-9223-27110B27FCF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B571D342-4BCA-4DEB-9223-27110B27FCF7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FF151AEE-8390-4DE3-BCFA-47F6F0842E3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FF151AEE-8390-4DE3-BCFA-47F6F0842E3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A7D53671-3028-4693-9B60-744249B4A0DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A7D53671-3028-4693-9B60-744249B4A0DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
