@@ -1,39 +1,28 @@
 name: Build
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
 
 jobs:
   build:
-
+    name: Build
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run: dotnet restore
-    - name: Git Status Output
-      run: git status
-    - name: Git Commit Output
-      run: git rev-parse HEAD
-    - name: Git OriginURL Output
-      run: git config --local --get remote.origin.url
     - name: Build
-      id: Build
+      id: build
       run: dotnet build --configuration Release --no-restore
-    - name: Pack
-      run: dotnet pack ./BeatSaberModdingTools.Tasks/BeatSaberModdingTools.Tasks.csproj -c Release -o ./artifacts --no-restore --include-symbols
     - name: Test
       run: dotnet test --no-restore --verbosity normal --logger GitHubActions
+    - name: Pack
+      run: dotnet pack ./BeatSaberModdingTools.Tasks/BeatSaberModdingTools.Tasks.csproj -c Release -o ./artifacts --no-restore --include-symbols
     - name: Upload Artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.Build.outputs.filename }}
+        name: ${{ steps.build.outputs.filename }}
         path: ./artifacts
+    - name: Push NuGet package
+      if: github.ref_type == 'tag'
+      run: |
+        dotnet nuget push ./artifacts/*.nupkg --source ${{ secrets.NUGET_SOURCE }} --api-key ${{ secrets.NUGET_KEY }}
