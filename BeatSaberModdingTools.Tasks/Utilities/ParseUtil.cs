@@ -155,7 +155,7 @@ namespace BeatSaberModdingTools.Tasks.Utilities
         public static bool TryParseModId(ITaskItem item, out KeyValuePair<string, string> data)
         {
             data = default;
-            string name = item.ToString();
+            string name = item.ItemSpec;
             string version = item.GetMetadata("Version");
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(version))
                 return false;
@@ -166,24 +166,34 @@ namespace BeatSaberModdingTools.Tasks.Utilities
         /// Parses a collection of <see cref="ITaskItem"/> into a dictionary of (Include, Version).
         /// </summary>
         /// <param name="items"></param>
-        /// <param name="existing"></param>
+        /// <param name="dict"></param>
         /// <param name="propName"></param>
         /// <returns></returns>
         public static Dictionary<string, string> ParseModIds(
-            IEnumerable<ITaskItem> items, Dictionary<string, string> existing, string propName = null)
+            IEnumerable<ITaskItem> items, Dictionary<string, string> dict, string propName = null)
         {
-            if (items == null || items.Count() == 0)
+            if (items == null || !items.Any())
+            {
                 return null;
-            var dict = existing ?? new Dictionary<string, string>(items.Count());
+            }
+
+            dict ??= new Dictionary<string, string>(items.Count());
+
             foreach (var item in items)
             {
                 if (item == null)
+                {
                     continue;
-                if (TryParseModId(item, out KeyValuePair<string, string> data))
-                    dict[data.Key] = data.Value;
-                else
-                    throw new ManifestValidationException($"{propName} entry '{item}' is not valid (example: '<PropertyName Include=\"ModID\" Version=\"^1.2.3\" />)");
+                }
+
+                if (!TryParseModId(item, out KeyValuePair<string, string> data))
+                {
+                    throw new ManifestValidationException($"{propName} entry '{item.ItemSpec}' is not valid (example: '<{propName ?? "PropertyName"} Include=\"ModID\" Version=\"^1.2.3\" />)");
+                }
+
+                dict[data.Key] = data.Value;
             }
+
             return dict;
         }
     }

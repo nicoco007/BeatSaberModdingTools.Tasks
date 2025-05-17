@@ -254,8 +254,5 @@ namespace BeatSaberModdingTools.Tasks
                 manifest.PluginHint = PluginHint;
             manifest.GeneratedBy = $"BSMT.Tasks/{Assembly.GetExecutingAssembly().GetName().Version.ToString()}";
         }
-
-
-
     }
 }

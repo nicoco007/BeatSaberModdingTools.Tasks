@@ -1739,7 +1739,7 @@
             Parses a collection of <see cref="T:Microsoft.Build.Framework.ITaskItem"/> into a dictionary of (Include, Version).
             </summary>
             <param name="items"></param>
-            <param name="existing"></param>
+            <param name="dict"></param>
             <param name="propName"></param>
             <returns></returns>
         </member>
