@@ -13,10 +13,9 @@ namespace BeatSaberModdingTools.Tasks.Models
         /// <summary>
         /// Throws an exception if the <see cref="BsipaManifest"/> is not valid.
         /// </summary>
-        /// <param name="requiresBsipa"></param>
         /// <exception cref="ManifestValidationException"/>
         /// <exception cref="BsipaDependsOnException"/>
-        public void Validate(bool requiresBsipa)
+        public void Validate()
         {
             var nullProps = json.Linq.Where(n =>
             n.Value == null || (n.Value.ToString() == string.Empty)).Select(n => n.Key).ToArray();
@@ -33,12 +32,8 @@ namespace BeatSaberModdingTools.Tasks.Models
                 invalidProperties.Add(nameof(Author));
             if (string.IsNullOrWhiteSpace(Version))
                 invalidProperties.Add(nameof(Version));
-            if (string.IsNullOrWhiteSpace(GameVersion) && requiresBsipa)
-                invalidProperties.Add(nameof(GameVersion));
             if (string.IsNullOrWhiteSpace(GetDescription()))
                 invalidProperties.Add(nameof(Description));
-            if (requiresBsipa && !(DependsOn?.TryGetValue("BSIPA", out _) ?? false))
-                throw new BsipaDependsOnException();
             if (invalidProperties.Count > 0)
             {
                 string message;

@@ -103,10 +103,6 @@ namespace BeatSaberModdingTools.Tasks
         /// Target path to write the manifest file (including file name).
         /// </summary>
         public string TargetPath { get; set; }
-        /// <summary>
-        /// If true, manifest validation will fail if BSIPA isn't listed as a DependsOn.
-        /// </summary>
-        public bool RequiresBsipa { get; set; } = true;
         #endregion
 
         #region Outputs
@@ -134,7 +130,7 @@ namespace BeatSaberModdingTools.Tasks
             try
             {
                 var manifest = MakeManifest();
-                manifest.Validate(RequiresBsipa);
+                manifest.Validate();
                 WriteManifest(manifest, TargetPath);
                 BasePluginVersion = Util.StripVersionLabel(manifest.Version);
                 PluginVersion = manifest.Version;

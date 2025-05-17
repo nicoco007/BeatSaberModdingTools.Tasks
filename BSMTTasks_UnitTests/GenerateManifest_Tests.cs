@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using BeatSaberModdingTools.Tasks;
 using BeatSaberModdingTools.Tasks.Models;
 using BeatSaberModdingTools.Tasks.Utilities;
 using BeatSaberModdingTools.Tasks.Utilities.Mock;
-using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BSMTTasks_UnitTests
@@ -34,7 +31,6 @@ namespace BSMTTasks_UnitTests
                 Description = "Description of a test plugin.",
                 DependsOn = 
                     MockTaskItem.FromDictString("DependsOn", "BSIPA|^4.3.0", "TestDepend1|^2.0.1", "TestDepend2|^1.0.0" ),
-                RequiresBsipa = true,
                 TargetPath = targetPath
             };
             Assert.IsTrue(task.Execute());
@@ -56,7 +52,6 @@ namespace BSMTTasks_UnitTests
                 GameVersion = "1.14.0",
                 Description = "Description of a test plugin.",
                 Files = new string[] { "Libs/TestLib1.dll;Libs/TestLib2.dll" },
-                RequiresBsipa = false,
                 TargetPath = targetPath
             };
             Assert.IsTrue(task.Execute());
@@ -86,7 +81,6 @@ namespace BSMTTasks_UnitTests
                 ProjectHome = "http://project.home",
                 ProjectSource = "http://project.source",
                 PluginHint = "Namespace.Plugin.Type",
-                RequiresBsipa = false,
                 TargetPath = targetPath
             };
             Assert.IsTrue(task.Execute());
@@ -121,7 +115,6 @@ namespace BSMTTasks_UnitTests
                     MockTaskItem.FromDictString("DependsOn", "BSIPA|^4.3.0", "TestDepend1|^2.0.1", "TestDepend2|^1.0.0"),
                 ConflictsWith =
                     MockTaskItem.FromDictString("ConflictsWith", "TestConflict1|^2.0.1", "TestConflict2|^1.0.0"),
-                RequiresBsipa = true,
                 BaseManifestPath = basePath,
                 TargetPath = targetPath
             };
@@ -175,7 +168,6 @@ namespace BSMTTasks_UnitTests
                 Features = "{ \"New-Feature\" : { \"name\" : \"New-feature-name\" } }",
                 Misc = "{ \"Other-Misc\" : { \"name\" : \"New-Misc-name\" } }",
                 PluginHint = "Namespace.Plugin.Type",
-                RequiresBsipa = true,
                 BaseManifestPath = basePath,
                 TargetPath = targetPath
             };
@@ -197,7 +189,7 @@ namespace BSMTTasks_UnitTests
                 Description = "Description of a test plugin."
             };
             manifest.DependsOn = ParseUtil.ParseDictString(new string[] { "TestDepend1|^2.0.1;TestDepend2|^1.0.0" }, "DependsOn");
-            manifest.Validate(false);
+            manifest.Validate();
             File.WriteAllText(targetPath, manifest.ToJson());
         }
 
@@ -210,7 +202,6 @@ namespace BSMTTasks_UnitTests
             MockTaskLogger logger = new MockTaskLogger(nameof(GenerateManifest));
             var task = new GenerateManifest()
             {
-                RequiresBsipa = false,
                 TargetPath = targetPath,
                 Logger = logger
             };
@@ -228,35 +219,6 @@ namespace BSMTTasks_UnitTests
             Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.Description)));
         }
 
-        [TestMethod]
-        public void InvalidPropertiesRequiresBsipa_ThrowsException()
-        {
-            Directory.CreateDirectory(OutputPath);
-            string targetPath = Path.Combine(OutputPath, nameof(InvalidProperties_ThrowsException) + ".json");
-            MockTaskLogger logger = new MockTaskLogger(nameof(GenerateManifest));
-            var task = new GenerateManifest()
-            {
-                RequiresBsipa = true,
-                TargetPath = targetPath,
-                Logger = logger,
-                DependsOn = 
-                    MockTaskItem.FromDictString("DependsOn", "BSIPA|^4.3.0"),
-            };
-            Assert.IsFalse(task.Execute());
-            var logEntry = logger.LogEntries.First();
-            Console.Write(logEntry.Message);
-            var exception = logEntry.Exception as ManifestValidationException;
-            Assert.IsNotNull(exception);
-            var props = exception.InvalidProperties;
-            Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.Id)));
-            Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.Name)));
-            Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.Author)));
-            Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.Version)));
-            Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.GameVersion)));
-            Assert.IsTrue(props.Any(p => p == nameof(GenerateManifest.Description)));
-        }
-
-        
         public void TestManifest(GenerateManifest task, BsipaManifest manifest, int baseDepends = 0, int baseConflicts = 0)
         {
             Assert.AreEqual(task.Id, manifest.Id);
